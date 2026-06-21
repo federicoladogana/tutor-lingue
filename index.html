@@ -151,8 +151,12 @@ const LANGS={
   es:{name:"Spagnolo",flag:"🇪🇸",code:"es-ES",ai:"spagnolo"},
   fr:{name:"Francese",flag:"🇫🇷",code:"fr-FR",ai:"francese"},
   de:{name:"Tedesco",flag:"🇩🇪",code:"de-DE",ai:"tedesco"},
+  pt:{name:"Portoghese",flag:"🇵🇹",code:"pt-PT",ai:"portoghese"},
+  nl:{name:"Olandese",flag:"🇳🇱",code:"nl-NL",ai:"olandese"},
+  ru:{name:"Russo",flag:"🇷🇺",code:"ru-RU",ai:"russo"},
+  zh:{name:"Cinese",flag:"🇨🇳",code:"zh-CN",ai:"cinese mandarino"},
 };
-const LANG_ORDER=["en","es","fr","de"];
+const LANG_ORDER=["en","es","fr","de","pt","nl","ru","zh"];
 
 /* ---------------- TEMI ---------------- */
 const THEMES={
@@ -265,6 +269,154 @@ const allSent=LESSONS.flatMap(l=>l.sentences);
 function findLesson(id){return LESSONS.find(l=>l.id===id);}
 function tw(w){return(w&&w[S.lang])||{w:"?",ph:""};}
 function ts(s){return(s&&s[S.lang])||"";}
+
+/* --- LINGUE EXTRA (pt, nl, ru, zh) unite alle lezioni esistenti ---
+   ordine per parola: [pt,ph, nl,ph, ru,ph, zh,ph]. Frasi: [pt, nl, ru, zh].
+   Le frasi in cinese hanno spazi tra le parole per l'esercizio "componi". */
+const EXT={
+  saluti:{w:[
+    ["olá","o-là","hallo","hà-lo","привет","pri-vièt","你好","nì hào"],
+    ["bom dia","bon dì-a","goedemorgen","gùde-mòr-ghen","доброе утро","dò-broie ù-tra","早上好","zào sciàng hào"],
+    ["boa tarde","bò-a tàr-de","goedenavond","gùden-à-font","добрый вечер","dò-bri vè-cer","晚上好","uàn sciàng hào"],
+    ["adeus","a-dèus","tot ziens","tot sìns","до свидания","da svi-dà-nia","再见","zài gièn"],
+    ["por favor","por fa-vòr","alstublieft","àls-tu-blìft","пожалуйста","pa-jà-lui-sta","请","cing"],
+    ["obrigado","o-bri-gà-do","dank je","dànk ie","спасибо","spa-sì-ba","谢谢","sié-sie"],
+    ["sim","sìn","ja","ia","да","da","对","duèi"],
+    ["não","nàun","nee","nee","нет","nièt","不","bu"],
+  ],s:[
+    ["Olá, obrigado","Hallo, dank je","Привет, спасибо","你好 谢谢"],
+    ["Muito obrigado","Heel erg bedankt","Большое спасибо","非常 感谢"],
+  ]},
+  persone:{w:[
+    ["eu","èu","ik","ik","я","ia","我","uò"],
+    ["tu","tu","jij","yèi","ты","ti","你","nì"],
+    ["ele","è-le","hij","hèi","он","on","他","ta"],
+    ["ela","è-la","zij","zèi","она","a-nà","她","ta"],
+    ["nós","nos","wij","vèi","мы","mi","我们","uò-men"],
+    ["eu chamo-me","èu scià-mu-me","ik heet","ik heet","меня зовут","mi-nià za-vùt","我叫","uò giào"],
+    ["prazer","pra-zèr","aangenaam","àan-ghe-naam","приятно","pri-iàt-na","很高兴","hèn gao sing"],
+    ["como te chamas?","cò-mu te scià-mas","hoe heet je?","hu heet ie","как тебя зовут?","kak ti-bià za-vùt","你叫什么名字？","nì giào scen-me mìng-zi"],
+  ],s:[
+    ["Eu chamo-me Federico","Ik heet Federico","Меня зовут Федерико","我 叫 Federico"],
+    ["Eu sou italiano","Ik ben Italiaan","Я итальянец","我 是 意大利人"],
+  ]},
+  essere:{w:[
+    ["eu sou","èu so","ik ben","ik ben","я","ia","我是","uò scì"],
+    ["tu és","tu es","jij bent","yèi bent","ты","ti","你是","nì scì"],
+    ["ele é","è-le e","hij is","hèi is","он","on","他是","ta scì"],
+    ["nós somos","nos sò-mus","wij zijn","vèi zèin","мы","mi","我们是","uò-men scì"],
+    ["grande","gràn-de","groot","groot","большой","bal-sciòi","大","da"],
+    ["pequeno","pe-kè-nu","klein","klàin","маленький","mà-len-kii","小","sciào"],
+    ["novo","nò-vu","nieuw","niu","новый","nò-vi","新","sin"],
+    ["amigo","a-mì-gu","vriend","frìnt","друг","drug","朋友","pèng-iou"],
+  ],s:[
+    ["Ele é grande","Hij is groot","Он большой","他 很 大"],
+    ["Nós somos amigos","Wij zijn vrienden","Мы друзья","我们 是 朋友"],
+    ["Tu és italiano","Jij bent Italiaan","Ты итальянец","你 是 意大利人"],
+  ]},
+  numeri:{w:[
+    ["um","un","een","een","один","a-dìn","一","i"],
+    ["dois","dòis","twee","tve","два","dva","二","èr"],
+    ["três","tres","drie","dri","три","tri","三","san"],
+    ["quatro","kuà-tru","vier","fir","четыре","cie-tì-re","四","sì"],
+    ["cinco","sìn-ku","vijf","fèif","пять","piat","五","ù"],
+    ["seis","sèis","zes","zes","шесть","sciest","六","liòu"],
+    ["sete","sè-te","zeven","zè-ven","семь","siem","七","ci"],
+    ["oito","òi-tu","acht","aht","восемь","vò-siem","八","ba"],
+    ["nove","nò-ve","negen","nè-ghen","девять","diè-viat","九","giòu"],
+    ["dez","des","tien","tin","десять","diè-siat","十","scì"],
+  ],s:[
+    ["Tenho dois gatos","Ik heb twee katten","У меня два кота","我 有 两 只 猫"],
+    ["cinco euros","vijf euro","пять евро","五 欧元"],
+  ]},
+  cibo:{w:[
+    ["água","à-gua","water","va-ter","вода","va-dà","水","sciuèi"],
+    ["café","ka-fè","koffie","kò-fi","кофе","kò-fie","咖啡","ka-fei"],
+    ["pão","pàun","brood","broot","хлеб","hlieb","面包","mièn-bao"],
+    ["maçã","ma-sàn","appel","àp-pel","яблоко","ià-bla-ka","苹果","ping-guò"],
+    ["comer","ku-mèr","eten","è-ten","есть","iest","吃","ci"],
+    ["beber","be-bèr","drinken","drìn-ken","пить","pit","喝","he"],
+    ["queria","ke-rì-a","ik wil graag","ik vil graag","я хочу","ia ha-ciù","我想要","uò sciàng-iào"],
+    ["a conta","a kòn-ta","de rekening","de rè-ke-ning","счёт","sciòt","账单","zcàng-dan"],
+  ],s:[
+    ["Queria um café","Ik wil graag een koffie","Я хочу кофе","我 想要 一 杯 咖啡"],
+    ["Água, por favor","Water, alstublieft","Воду, пожалуйста","水 请"],
+    ["A conta, por favor","De rekening, alstublieft","Счёт, пожалуйста","账单 请"],
+  ]},
+  casa:{w:[
+    ["casa","kà-za","huis","hèus","дом","dom","房子","fàng-zi"],
+    ["porta","pòr-ta","deur","dër","дверь","dvier","门","men"],
+    ["mesa","mè-za","tafel","tà-fel","стол","stol","桌子","zciuo-zi"],
+    ["cama","kà-ma","bed","bet","кровать","kra-vàt","床","ciuàng"],
+    ["chave","scià-ve","sleutel","slö-tel","ключ","kliuc","钥匙","iào-sci"],
+    ["telefone","te-le-fò-ne","telefoon","te-le-fòn","телефон","te-le-fòn","电话","dièn-hua"],
+    ["carro","kàr-ru","auto","àu-to","машина","ma-scì-na","车","ce"],
+    ["cidade","si-dà-de","stad","stat","город","gò-rad","城市","cèng-scì"],
+  ],s:[
+    ["Esta é a minha casa","Dit is mijn huis","Это мой дом","这 是 我的 房子"],
+    ["Onde está a chave?","Waar is de sleutel?","Где ключ?","钥匙 在 哪里"],
+  ]},
+  domande:{w:[
+    ["o quê","u ke","wat","vat","что","scto","什么","scen-me"],
+    ["onde","òn-de","waar","var","где","gdie","哪里","nà-li"],
+    ["quando","kuàn-du","wanneer","va-nèer","когда","kag-dà","什么时候","scen-me scì-hou"],
+    ["quem","kein","wie","vi","кто","kto","谁","scéi"],
+    ["porquê","pur-kè","waarom","va-ròm","почему","pa-cie-mù","为什么","uèi-scen-me"],
+    ["quanto custa","kuàn-tu kùs-ta","hoeveel kost het","hu-vèel kost het","сколько стоит","skòl-ka stò-it","多少钱","duo-sciào cién"],
+    ["como estás","cò-mu es-tàs","hoe gaat het","hu gaat het","как дела","kak die-là","你好吗","nì hào ma"],
+    ["falas português?","fà-las pur-tu-ghès","spreek je Nederlands?","spreek ie nè-der-lants","ты говоришь по-русски?","ti ga-va-rìsc pa-rùs-ki","你会说中文吗？","nì huèi sciuo zciòng-uen ma"],
+  ],s:[
+    ["Onde é a casa de banho?","Waar is het toilet?","Где туалет?","厕所 在 哪里"],
+    ["Como estás?","Hoe gaat het?","Как дела?","你 好 吗"],
+    ["Quanto custa?","Hoeveel kost het?","Сколько стоит?","多少 钱"],
+  ]},
+  frasiutili:{w:[
+    ["não percebo","nàun per-sè-bu","ik begrijp het niet","ik be-grèip het nit","я не понимаю","ia ne pa-ni-mà-iu","我不明白","uò bu mìng-bai"],
+    ["desculpa","des-kùl-pa","sorry","sòr-ri","извини","iz-vi-nì","对不起","duèi-bu-ci"],
+    ["com licença","con li-sèn-sa","pardon","par-dòn","простите","pra-stì-te","请问","cing-uèn"],
+    ["podes ajudar-me","pò-des a-ju-dàr-me","kun je me helpen","kun ie me hèl-pen","можешь помочь","mò-jesc pa-mòc","你能帮我吗","nì néng bang uò ma"],
+    ["mais devagar","mais de-va-gàr","langzamer","làng-za-mer","медленнее","mièd-len-nie-ie","慢一点","man i-dièn"],
+    ["não sei","nàun sèi","ik weet het niet","ik veet het nit","я не знаю","ia ne znà-iu","我不知道","uò bu zci-dào"],
+    ["outra vez","òu-tra ves","nog een keer","noh een keer","ещё раз","ie-sciò ras","再一次","zài i-ci"],
+    ["claro","klà-ru","natuurlijk","na-tùr-lik","конечно","ka-nièc-na","当然","dang-rán"],
+  ],s:[
+    ["Desculpa, não percebo","Sorry, ik begrijp het niet","Извини, я не понимаю","对不起 我 不 明白"],
+    ["Podes ajudar-me, por favor?","Kun je me helpen, alsjeblieft?","Помоги мне, пожалуйста","请 帮 我"],
+    ["Mais devagar, por favor","Langzamer, alstublieft","Медленнее, пожалуйста","请 说 慢 一点"],
+  ]},
+  ufficio:{w:[
+    ["o email","u i-mèil","de e-mail","de i-mèil","электронная почта","e-lek-tròn-na-ia pòc-ta","电子邮件","dièn-zi iou-gièn"],
+    ["reunião","reu-ni-àun","vergadering","fer-ga-de-ring","встреча","fstrè-cia","会议","huèi-i"],
+    ["o escritório","u es-kri-tò-riu","het kantoor","het kan-tòor","офис","ò-fis","办公室","ban-gong-scì"],
+    ["o cliente","u kli-èn-te","de klant","de klant","клиент","kli-ènt","客户","ke-hu"],
+    ["o chefe","u scè-fe","de manager","de mè-na-ger","начальник","na-ciàl-nik","经理","ging-li"],
+    ["eu trabalho","èu tra-bà-liu","ik werk","ik verk","я работаю","ia ra-bò-ta-iu","我工作","uò gong-zuò"],
+    ["telefonar","te-le-fu-nàr","bellen","bè-len","звонить","zva-nìt","打电话","da dièn-hua"],
+    ["enviar","en-vi-àr","versturen","fer-stù-ren","отправить","at-prà-vit","发送","fa-song"],
+  ],s:[
+    ["Eu trabalho no escritório","Ik werk op kantoor","Я работаю в офисе","我 在 办公室 工作"],
+    ["Envio um email","Ik stuur een e-mail","Я отправляю письмо","我 发送 电子邮件"],
+    ["Tenho uma reunião","Ik heb een vergadering","У меня встреча","我 有 会议"],
+  ]},
+  colloquio:{w:[
+    ["tenho experiência","tè-niu es-pe-ri-èn-sia","ik heb ervaring","ik heb er-fà-ring","у меня есть опыт","u mi-nià iest ò-pit","我有经验","uò iou ging-ièn"],
+    ["eu posso","èu pò-su","ik kan","ik kan","я могу","ia ma-gù","我能","uò néng"],
+    ["estou à procura","es-tò a pru-kù-ra","ik zoek","ik zuk","я ищу","ia i-sciù","我在找","uò zài zciào"],
+    ["um emprego","un em-prè-gu","een baan","een baan","работа","ra-bò-ta","工作","gong-zuò"],
+    ["disponível","dis-pu-nì-vel","beschikbaar","be-shìk-baar","доступен","das-tù-pien","有空","iou-kong"],
+    ["equipa","e-kì-pa","team","tim","команда","ka-màn-da","团队","tuàn-duèi"],
+    ["pontual","pon-tu-àl","op tijd","op tèit","пунктуальный","punk-tu-àl-ni","准时","zciuèn-scì"],
+    ["obrigado pelo seu tempo","o-bri-gà-du pe-lu seu tem-pu","bedankt voor uw tijd","be-dànkt for u tèit","спасибо за время","spa-sì-ba za vrè-mia","谢谢您的时间","sié-sie nin-de scì-gièn"],
+  ],s:[
+    ["Estou à procura de um emprego","Ik zoek een baan","Я ищу работу","我 在 找 工作"],
+    ["Tenho experiência no escritório","Ik heb kantoorervaring","У меня есть опыт работы в офисе","我 有 办公室 经验"],
+    ["Sei trabalhar em equipa","Ik kan in een team werken","Я умею работать в команде","我 能 团队 合作"],
+  ]},
+};
+function mergeExt(){LESSONS.forEach(l=>{const e=EXT[l.id];if(!e)return;
+  l.words.forEach((w,i)=>{const a=e.w[i];if(!a)return;w.pt={w:a[0],ph:a[1]};w.nl={w:a[2],ph:a[3]};w.ru={w:a[4],ph:a[5]};w.zh={w:a[6],ph:a[7]};});
+  (l.sentences||[]).forEach((s,i)=>{const a=e.s[i];if(!a)return;s.pt=a[0];s.nl=a[1];s.ru=a[2];s.zh=a[3];});});}
+mergeExt();
 
 /* ---------------- SCENARI ---------------- */
 const SCENARIOS=[
@@ -646,7 +798,8 @@ SCREENS.correct=function(){const LN=LANGS[S.lang].ai;
 
 /* ---- CHIEDI ---- */
 SCREENS.ask=function(){const LN=LANGS[S.lang].ai;
-  const examples={en:["Quando si usa 'a' e 'an'?","Come si dice 'ho 30 anni'?","Differenza tra 'do' e 'make'?"],es:["Differenza tra 'ser' e 'estar'?","Come si dice 'ho 30 anni'?","Come si fanno le domande?"],fr:["Quando si usa 'le','la','les'?","Come si dice 'ho 30 anni'?","Come si fa il plurale?"],de:["Cosa sono 'der','die','das'?","Come si dice 'ho 30 anni'?","Come si salutano le persone?"]}[S.lang];
+  const EXMAP={en:["Quando si usa 'a' e 'an'?","Come si dice 'ho 30 anni'?","Differenza tra 'do' e 'make'?"],es:["Differenza tra 'ser' e 'estar'?","Come si dice 'ho 30 anni'?","Come si fanno le domande?"],fr:["Quando si usa 'le','la','les'?","Come si dice 'ho 30 anni'?","Come si fa il plurale?"],de:["Cosa sono 'der','die','das'?","Come si dice 'ho 30 anni'?","Come si salutano le persone?"],pt:["Differenza tra 'tu' e 'você'?","Come si dice 'ho 30 anni'?","Come si fa il plurale?"],nl:["Quando si usa 'de' e 'het'?","Come si dice 'ho 30 anni'?","Come si fanno le domande?"],ru:["Come funziona l'alfabeto cirillico?","Come si dice 'ho 30 anni'?","Perché spesso manca il verbo essere?"],zh:["Cosa sono i toni in cinese?","Come si dice 'ho 30 anni'?","Come si contano gli oggetti?"]};
+  const examples=EXMAP[S.lang]||["Come si dice 'grazie'?","Come si dice 'ho 30 anni'?","Come si fanno le domande?"];
   render(`<div class="head"><button class="back">←</button><h2>❓ Chiedi all'AI</h2></div><p class="sub">Dubbi sul <b>${LANGS[S.lang].name}</b>? Chiedi in italiano.</p><div id="chips"></div><input class="txt" id="ain" placeholder="Scrivi la tua domanda..." style="width:100%;margin:6px 0 12px"><button class="btn green" id="ago">Chiedi</button><div id="aout" style="margin-top:16px"></div>`);
   $(".back").onclick=()=>go("home");const chips=$("#chips");examples.forEach(x=>{const c=el(`<span class="chip">${x}</span>`);c.onclick=()=>{$("#ain").value=x;run();};chips.appendChild(c);});
   const run=async()=>{const v=$("#ain").value.trim();if(!v){toast("Scrivi una domanda 😊");return;}$("#aout").innerHTML=`<div class="typing">l'AI pensa<span>.</span><span>.</span><span>.</span></div>`;
