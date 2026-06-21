@@ -142,6 +142,13 @@
   .quickbar{display:flex;gap:6px;overflow-x:auto;padding:8px 0 6px;-webkit-overflow-scrolling:touch}
   .quickbar button{white-space:nowrap;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:20px;padding:9px 13px;font-size:13px;font-weight:700;cursor:pointer;flex:none}
   .quickbar button:active{transform:scale(.95)}
+  /* percorso A1-C2 */
+  .lvlcard{border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:10px;background:var(--card)}
+  .lvlcard.here{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  .lvlcard .lh{display:flex;align-items:center;gap:8px;margin-bottom:4px} .lvlcard .lh b{font-size:16px} .lvlcard .lh .tag{margin-left:auto;font-size:11px;color:var(--accent);font-weight:800}
+  .lvlcard p{margin:5px 0;font-size:13px;color:var(--muted);line-height:1.5} .lvlcard p .out{color:var(--blue)}
+  .planstep{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:11px;margin-bottom:8px;cursor:pointer;font-size:14px}
+  .planstep:active{transform:scale(.99)} .planstep .n{width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--onacc);font-weight:900;display:flex;align-items:center;justify-content:center;flex:none;font-size:13px}
 </style>
 </head>
 <body>
@@ -648,6 +655,7 @@ SCREENS.home=function(){
     </div>
     <div class="menu">
       <div class="tile wide" data-go="tutor" style="background:linear-gradient(135deg,#3a1f5c,var(--card))"><span class="e">🎓</span><b>Lezione con il tutor</b><span>Come avere un insegnante accanto: ti spiega e fa lezione passo passo</span></div>
+      <div class="tile wide" data-go="path"><span class="e">📈</span><b>Il mio percorso A1→C2</b><span>Piano giornaliero da 5-10 min e mappa dei livelli</span></div>
       <div class="tile wide" data-go="chatmenu" style="background:linear-gradient(135deg,var(--card2),var(--card))"><span class="e">💬</span><b>Chiacchiera con l'AI</b><span>Conversazioni con voce, ti ricorda chi sei</span></div>
       <div class="tile" data-go="level"><span class="e">📊</span><b>Il mio livello</b><span>${pct}% · ${lv.lvl}</span></div>
       <div class="tile" data-go="lessons"><span class="e">📚</span><b>Lezioni</b><span>${doneL}/${LESSONS.length} fatte</span></div>
@@ -720,6 +728,39 @@ function finishTest(){const r=TEST,pct=Math.round(r.correct/r.qs.length*100),lv=
     <p class="sub">${pct>=70?"Gran bel livello! 🚀":pct>=40?"Buona base! Ripassa per salire. 💪":"Ottimo che hai iniziato: ora le lezioni ti faranno volare. 🌱"}</p>
     <button class="btn green" id="h">Vai alle lezioni</button><button class="btn ghost sm" id="b" style="margin-top:10px">Torna al livello</button></div>`);
   $("#h").onclick=()=>go("lessons");$("#b").onclick=()=>go("level");}
+
+/* ---- PERCORSO A1 → C2 ---- */
+const CEFR=[
+  {lvl:"A1",name:"Principiante",can:"Frasi quotidiane semplici: salutare, presentarti, ordinare, numeri.",focus:"Vocabolario base + pronuncia. Usa 🎓 Tutor (basi) e 📚 Lezioni 'Le basi'.",out:""},
+  {lvl:"A2",name:"Elementare",can:"Te la cavi in situazioni semplici: spesa, viaggio, parlare di te e della tua routine.",focus:"Più parole e prime conversazioni. Usa 🎓 Tutor, 💬 Conversazioni (bar, viaggio), 📖 Frasario.",out:""},
+  {lvl:"B1",name:"Intermedio",can:"Gestisci la maggior parte delle situazioni in viaggio, racconti esperienze e opinioni semplici.",focus:"Conversazione frequente + passato/futuro. Usa 💬 Conversazioni lunghe e ✍️ Correggi frase ogni giorno.",out:"Guarda video/serie semplici con sottotitoli."},
+  {lvl:"B2",name:"Intermedio alto",can:"Parli in modo fluente e spontaneo, capisci testi complessi, sostieni una discussione.",focus:"Tanta pratica reale: parlare, scrivere, leggere. Usa 💬 su temi vari e ❓ Chiedi all'AI per i dubbi.",out:"Serie/podcast in lingua, leggi articoli, scrivi brevi testi e fatteli correggere."},
+  {lvl:"C1",name:"Avanzato",can:"Usi la lingua in modo flessibile ed efficace per lavoro e studio, cogli le sfumature.",focus:"Immersione quotidiana. L'app diventa supporto (dubbi, ripasso, correzioni).",out:"Contenuti per madrelingua e conversazione regolare con persone vere."},
+  {lvl:"C2",name:"Padronanza",can:"Capisci quasi tutto e ti esprimi con precisione, come un quasi-madrelingua.",focus:"Mantenimento e raffinatezza.",out:"Uso costante: lavoro/studio nella lingua, lettura ampia, scambi con madrelingua."},
+];
+SCREENS.path=function(){
+  if(!S.apiKey)return SCREENS.setup();
+  const pct=knowledge(S.lang);const here=pct>=100?2:pct>=50?1:0;
+  render(`<div class="head"><button class="back">←</button><h2>📈 Il mio percorso</h2></div>
+    <div class="card"><div class="mascot"><div class="avatar">${S.avatar}</div>
+      <div class="bubble">La tua strada da <b>A1 a C2</b> in ${LANGS[S.lang].flag} ${LANGS[S.lang].name}. Vai con calma: <b>5-10 minuti al giorno</b> e arrivi lontano. 💚</div></div></div>
+    <div class="card"><h3>☀️ Piano di oggi (5-10 min)</h3>
+      <div class="planstep" data-go="tutor"><div class="n">1</div><div>🎓 Una mini-lezione col tutor <span style="color:var(--muted)">· ~4 min</span></div></div>
+      <div class="planstep" data-go="ripasso"><div class="n">2</div><div>🔁 Ripassa le parole che sbagli <span style="color:var(--muted)">· ~2 min</span></div></div>
+      <div class="planstep" data-go="speak"><div class="n">3</div><div>🔊 Di' una frase ad alta voce <span style="color:var(--muted)">· ~2 min</span></div></div>
+      <p class="sub" style="margin:8px 0 0">Falli ogni giorno e tieni viva la 🔥 streak. La costanza vale più della velocità!</p></div>
+    <button class="btn green" id="today">🎓 Inizia la lezione di oggi</button>
+    <h3 style="margin:18px 4px 10px">🗺️ I 6 livelli</h3><div id="cefr"></div>
+    <div class="tip">📍 Con il corso base dell'app arrivi intorno ad <b>A2</b>. Per <b>B1→C2</b> il tutor ti accompagna, ma serve anche <b>vivere la lingua</b> (serie, letture, parlare): te lo spiego in ogni livello.</div>`);
+  $(".back").onclick=()=>go("home");$("#today").onclick=()=>go("tutor");
+  document.querySelectorAll(".planstep").forEach(s=>s.onclick=()=>go(s.dataset.go));
+  const c=$("#cefr");
+  CEFR.forEach((L,i)=>{c.appendChild(el(`<div class="lvlcard ${i===here?'here':''}">
+    <div class="lh"><b>${L.lvl} · ${L.name}</b>${i===here?'<span class="tag">📍 SEI QUI</span>':''}</div>
+    <p><b style="color:var(--txt)">Sai fare:</b> ${L.can}</p>
+    <p><b style="color:var(--txt)">Come allenarti:</b> ${L.focus}</p>
+    ${L.out?`<p><span class="out"><b>Fuori dall'app:</b> ${L.out}</span></p>`:""}</div>`));});
+};
 
 /* ---- CHAT MENU ---- */
 SCREENS.chatmenu=function(){
