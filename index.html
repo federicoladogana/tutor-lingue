@@ -125,6 +125,18 @@
   /* confetti */
   .conf{position:fixed;top:-20px;font-size:22px;z-index:60;pointer-events:none;animation:fall 1.6s ease-in forwards}
   @keyframes fall{to{transform:translateY(110vh) rotate(420deg);opacity:0}}
+  /* frasario */
+  .catbar{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:8px;-webkit-overflow-scrolling:touch}
+  .catbtn{white-space:nowrap;background:var(--card2);border:2px solid var(--line);border-radius:20px;padding:8px 13px;font-size:14px;font-weight:700;cursor:pointer;flex:none}
+  .catbtn.on{border-color:var(--accent);color:var(--accent)}
+  .pcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+  .pc-it{font-size:13px;color:var(--muted)} .pc-t{font-size:18px;font-weight:800;margin-top:2px;line-height:1.3} .pc-t .ph{font-size:13px;color:var(--blue);font-weight:600;margin-left:6px}
+  .pc-act{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .pc-act button{background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:7px 12px;font-size:15px;cursor:pointer}
+  .pc-act button.fav{color:var(--gold);border-color:var(--gold)}
+  .bigov{position:fixed;inset:0;background:var(--bgB);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;padding:24px;text-align:center;cursor:pointer}
+  .bigtxt{font-size:clamp(28px,9vw,46px);font-weight:900;line-height:1.25} .bigit{font-size:18px;color:var(--muted);margin-top:20px} .bighint{position:absolute;bottom:34px;font-size:13px;color:var(--muted)}
+  .bigov .bigspk{margin-top:22px;background:var(--accent);color:var(--onacc);border:none;border-radius:14px;padding:12px 22px;font-size:16px;font-weight:800}
 </style>
 </head>
 <body>
@@ -418,6 +430,55 @@ function mergeExt(){LESSONS.forEach(l=>{const e=EXT[l.id];if(!e)return;
   (l.sentences||[]).forEach((s,i)=>{const a=e.s[i];if(!a)return;s.pt=a[0];s.nl=a[1];s.ru=a[2];s.zh=a[3];});});}
 mergeExt();
 
+/* --- FRASARIO DA VIAGGIO (offline) --- ordine campi: it,en,es,fr,de,pt,nl,ru,zh */
+const PB_ROW=(it,en,es,fr,de,pt,nl,ru,zh)=>({it,en,es,fr,de,pt,nl,ru,zh});
+const PHRASEBOOK=[
+  {cat:"🆘 Emergenze",items:[
+    PB_ROW("Aiuto!","Help!","¡Ayuda!","Au secours !","Hilfe!","Socorro!","Help!","Помогите!","救命"),
+    PB_ROW("Ho bisogno di un medico","I need a doctor","Necesito un médico","J'ai besoin d'un médecin","Ich brauche einen Arzt","Preciso de um médico","Ik heb een dokter nodig","Мне нужен врач","我需要医生"),
+    PB_ROW("Chiami la polizia","Call the police","Llame a la policía","Appelez la police","Rufen Sie die Polizei","Chame a polícia","Bel de politie","Вызовите полицию","请叫警察"),
+    PB_ROW("Mi sono perso","I'm lost","Estoy perdido","Je suis perdu","Ich habe mich verlaufen","Estou perdido","Ik ben verdwaald","Я заблудился","我迷路了"),
+  ]},
+  {cat:"🍽️ Ristorante",items:[
+    PB_ROW("Il menù, per favore","The menu, please","La carta, por favor","Le menu, s'il vous plaît","Die Speisekarte, bitte","O menu, por favor","Het menu, alstublieft","Меню, пожалуйста","请给我菜单"),
+    PB_ROW("Vorrei ordinare","I'd like to order","Quiero pedir","Je voudrais commander","Ich möchte bestellen","Quero pedir","Ik wil graag bestellen","Я хочу заказать","我想点菜"),
+    PB_ROW("Sono allergico","I am allergic","Soy alérgico","Je suis allergique","Ich bin allergisch","Sou alérgico","Ik ben allergisch","У меня аллергия","我过敏"),
+  ]},
+  {cat:"🚕 Trasporti",items:[
+    PB_ROW("Dov'è la stazione?","Where is the station?","¿Dónde está la estación?","Où est la gare ?","Wo ist der Bahnhof?","Onde fica a estação?","Waar is het station?","Где вокзал?","车站在哪里"),
+    PB_ROW("Un biglietto, per favore","A ticket, please","Un billete, por favor","Un billet, s'il vous plaît","Eine Fahrkarte, bitte","Um bilhete, por favor","Een kaartje, alstublieft","Один билет, пожалуйста","一张票"),
+    PB_ROW("A che ora parte?","What time does it leave?","¿A qué hora sale?","À quelle heure ça part ?","Wann fährt es ab?","A que horas parte?","Hoe laat vertrekt het?","Во сколько отправление?","几点出发"),
+  ]},
+  {cat:"🏨 Hotel",items:[
+    PB_ROW("Ho una prenotazione","I have a reservation","Tengo una reserva","J'ai une réservation","Ich habe eine Reservierung","Tenho uma reserva","Ik heb een reservering","У меня бронь","我有预订"),
+    PB_ROW("Avete una camera libera?","Do you have a free room?","¿Tienen una habitación libre?","Avez-vous une chambre libre ?","Haben Sie ein freies Zimmer?","Têm um quarto livre?","Heeft u een kamer vrij?","У вас есть свободный номер?","有空房间吗"),
+  ]},
+  {cat:"🛍️ Soldi e acquisti",items:[
+    PB_ROW("Posso pagare con la carta?","Can I pay by card?","¿Puedo pagar con tarjeta?","Puis-je payer par carte ?","Kann ich mit Karte zahlen?","Posso pagar com cartão?","Kan ik met kaart betalen?","Можно оплатить картой?","可以刷卡吗"),
+    PB_ROW("È troppo caro","It's too expensive","Es demasiado caro","C'est trop cher","Das ist zu teuer","É muito caro","Het is te duur","Это слишком дорого","太贵了"),
+    PB_ROW("Accettate contanti?","Do you accept cash?","¿Aceptan efectivo?","Acceptez-vous les espèces ?","Akzeptieren Sie Bargeld?","Aceitam dinheiro?","Accepteert u contant?","Вы принимаете наличные?","收现金吗"),
+  ]},
+  {cat:"🧭 Indicazioni",items:[
+    PB_ROW("A destra","On the right","A la derecha","À droite","Rechts","À direita","Rechts","Направо","右边"),
+    PB_ROW("A sinistra","On the left","A la izquierda","À gauche","Links","À esquerda","Links","Налево","左边"),
+    PB_ROW("Sempre dritto","Straight ahead","Todo recto","Tout droit","Geradeaus","Sempre em frente","Rechtdoor","Прямо","一直走"),
+  ]},
+];
+function buildPhrasebook(){
+  const cats=[];
+  PHRASEBOOK.forEach(c=>cats.push({name:c.cat,items:c.items.map(it=>({it:it.it,t:it[S.lang]||""}))}));
+  LESSONS.forEach(l=>{const items=[];
+    l.words.forEach(w=>items.push({it:w.it,t:tw(w).w,ph:tw(w).ph}));
+    (l.sentences||[]).forEach(s=>items.push({it:s.it,t:ts(s)}));
+    cats.push({name:l.icon+" "+l.title,items});});
+  return cats;
+}
+function toggleFav(it){const i=S.favs.indexOf(it);if(i>=0)S.favs.splice(i,1);else S.favs.push(it);save();}
+function copyText(t){try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t);toast("Copiato 📋");return;}}catch(e){}
+  try{const ta=document.createElement("textarea");ta.value=t;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.focus();ta.select();document.execCommand("copy");ta.remove();toast("Copiato 📋");}catch(e){toast("Non riesco a copiare");}}
+function showBig(t,it){const o=el(`<div class="bigov"><div class="bigtxt">${esc(t||"—")}</div><div class="bigit">${esc(it)}</div><button class="bigspk">🔊 Ascolta</button><div class="bighint">Mostralo a chi hai davanti · tocca lo sfondo per chiudere</div></div>`);
+  o.onclick=e=>{if(e.target===o)o.remove();};o.querySelector(".bigspk").onclick=ev=>{ev.stopPropagation();speak(t,false);};document.body.appendChild(o);}
+
 /* ---------------- SCENARI ---------------- */
 const SCENARIOS=[
   {id:"libera",icon:"🗣️",title:"Conversazione libera",desc:"Parla di quello che vuoi",ctx:"Conversazione libera e amichevole su argomenti di tutti i giorni."},
@@ -434,7 +495,7 @@ const OLDKEY="tutor_inglese_ai_v1";
 const todayStr=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
 let S=load();
 function load(){
-  const def={xp:0,streak:0,lastDay:null,apiKey:"",model:"",lang:"en",prog:{},theme:"notte",avatar:"🦉",goal:20,dayXP:0,dayXPDate:null,goalDone:false,sound:true,serene:true,profile:{name:"Federico",interests:"",goals:"",weak:[]}};
+  const def={xp:0,streak:0,lastDay:null,apiKey:"",model:"",lang:"en",prog:{},theme:"notte",avatar:"🦉",goal:20,dayXP:0,dayXPDate:null,goalDone:false,sound:true,serene:true,favs:[],profile:{name:"Federico",interests:"",goals:"",weak:[]}};
   let raw=null;try{raw=JSON.parse(localStorage.getItem(KEY));}catch(e){}
   if(!raw){try{raw=JSON.parse(localStorage.getItem(OLDKEY));}catch(e){}}
   if(raw){const b=Object.assign({},def,raw);
@@ -443,6 +504,7 @@ function load(){
     if(!LANGS[b.lang])b.lang="en";
     b.profile=Object.assign({name:"Federico",interests:"",goals:"",weak:[]},b.profile||{});
     if(!Array.isArray(b.profile.weak))b.profile.weak=[];
+    if(!Array.isArray(b.favs))b.favs=[];
     if(!THEMES[b.theme])b.theme="notte";
     return b;}
   return def;
@@ -587,6 +649,7 @@ SCREENS.home=function(){
       <div class="tile" data-go="ripasso"><span class="e">🔁</span><b>Ripasso</b><span>${wk?wk+' parole da rivedere':'Tutto ok!'}</span></div>
       <div class="tile" data-go="correct"><span class="e">✍️</span><b>Correggi frase</b><span>L'AI ti corregge</span></div>
       <div class="tile" data-go="ask"><span class="e">❓</span><b>Chiedi all'AI</b><span>Dubbi spiegati in italiano</span></div>
+      <div class="tile wide" data-go="phrasebook" style="background:linear-gradient(135deg,var(--card2),var(--card))"><span class="e">📖</span><b>Frasario offline 📶❌</b><span>Frasi pronte per viaggi ed emergenze, senza internet</span></div>
     </div>`);
   document.querySelectorAll("[data-go]").forEach(t=>t.onclick=()=>go(t.dataset.go));
   $("#av").onclick=()=>{$("#av").classList.remove("bounce");void $("#av").offsetWidth;$("#av").classList.add("bounce");go("avatars");};
@@ -807,6 +870,43 @@ SCREENS.ask=function(){const LN=LANGS[S.lang].ai;
     try{const t=await callGemini([{role:"user",parts:[{text:v}]}],sys,600);$("#aout").innerHTML=`<div class="card">${fmt(t)}</div>`;addXP(6);}catch(e){$("#aout").innerHTML=`<div class="card">${geminiErrMsg(e)}</div>`;}};
   $("#ago").onclick=run;$("#ain").addEventListener("keydown",e=>{if(e.key==="Enter")run();});
 };
+
+/* ---- FRASARIO OFFLINE ---- */
+let PB={cat:0,query:""};
+SCREENS.phrasebook=function(){
+  const cats=buildPhrasebook();
+  render(`<div class="head"><button class="back">←</button><h2>📖 Frasario · ${LANGS[S.lang].flag}</h2></div>
+    <div class="tip">Funziona <b>offline</b>! Tocca 🔊 per sentire, ⭐ per salvarla, 👁 per mostrarla grande a chi hai davanti, 📋 per copiarla.</div>
+    <input class="txt" id="pq" placeholder="Cerca in italiano o in ${LANGS[S.lang].name}..." style="width:100%;margin-bottom:12px" value="${esc(PB.query)}">
+    <div class="catbar" id="catbar"></div><div id="plist"></div>`);
+  $(".back").onclick=()=>go("home");
+  const catbar=$("#catbar");
+  const favB=el(`<div class="catbtn ${PB.cat===-1&&!PB.query?'on':''}">⭐ Preferiti</div>`);favB.onclick=()=>{PB.cat=-1;PB.query="";$("#pq").value="";drawPB(cats);markCat();};catbar.appendChild(favB);
+  cats.forEach((c,i)=>{const b=el(`<div class="catbtn ${PB.cat===i&&!PB.query?'on':''}" data-ci="${i}">${c.name}</div>`);b.onclick=()=>{PB.cat=i;PB.query="";$("#pq").value="";drawPB(cats);markCat();};catbar.appendChild(b);});
+  const pq=$("#pq");pq.addEventListener("input",()=>{PB.query=pq.value;drawPB(cats);markCat();});
+  drawPB(cats);
+};
+function markCat(){document.querySelectorAll("#catbar .catbtn").forEach((b,idx)=>{const ci=b.dataset.ci!==undefined?+b.dataset.ci:-1;b.classList.toggle("on",!PB.query&&ci===PB.cat);});}
+function drawPB(cats){const list=$("#plist");if(!list)return;let items=[];const q=norm(PB.query);
+  if(q){cats.forEach(c=>c.items.forEach(it=>{if(norm(it.it).includes(q)||norm(it.t).includes(q))items.push(it);}));}
+  else if(PB.cat===-1){cats.forEach(c=>c.items.forEach(it=>{if(S.favs.includes(it.it))items.push(it);}));}
+  else{items=(cats[PB.cat]||cats[0]).items;}
+  const seen={};items=items.filter(it=>{if(seen[it.it])return false;seen[it.it]=1;return true;});
+  if(!items.length){list.innerHTML=`<p class="sub center" style="margin-top:20px">${PB.cat===-1&&!q?'Nessun preferito ancora. Tocca ⭐ su una frase per salvarla qui. 🌟':'Niente trovato 🔍'}</p>`;return;}
+  list.innerHTML="";
+  items.forEach(it=>{const fav=S.favs.includes(it.it);const t=it.t||"";
+    const card=el(`<div class="pcard"><div class="pc-it">${esc(it.it)}</div>
+      <div class="pc-t">${esc(t||"—")}${it.ph?`<span class="ph">${esc(it.ph)}</span>`:""}</div>
+      <div class="pc-act"><button data-a="say">🔊</button><button data-a="slow">🐢</button>
+      <button data-a="fav" class="${fav?'fav':''}">${fav?'⭐':'☆'}</button>
+      <button data-a="big">👁</button><button data-a="copy">📋</button></div></div>`);
+    card.querySelector('[data-a=say]').onclick=()=>speak(t,false);
+    card.querySelector('[data-a=slow]').onclick=()=>speak(t,true);
+    card.querySelector('[data-a=fav]').onclick=()=>{toggleFav(it.it);drawPB(cats);};
+    card.querySelector('[data-a=big]').onclick=()=>showBig(t,it.it);
+    card.querySelector('[data-a=copy]').onclick=()=>copyText(t);
+    list.appendChild(card);});
+}
 
 /* ---- PROFILO (memoria AI) ---- */
 SCREENS.profile=function(){
