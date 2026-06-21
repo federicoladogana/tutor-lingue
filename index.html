@@ -137,6 +137,10 @@
   .bigov{position:fixed;inset:0;background:var(--bgB);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;padding:24px;text-align:center;cursor:pointer}
   .bigtxt{font-size:clamp(28px,9vw,46px);font-weight:900;line-height:1.25} .bigit{font-size:18px;color:var(--muted);margin-top:20px} .bighint{position:absolute;bottom:34px;font-size:13px;color:var(--muted)}
   .bigov .bigspk{margin-top:22px;background:var(--accent);color:var(--onacc);border:none;border-radius:14px;padding:12px 22px;font-size:16px;font-weight:800}
+  /* pulsanti rapidi tutor */
+  .quickbar{display:flex;gap:6px;overflow-x:auto;padding:8px 0 6px;-webkit-overflow-scrolling:touch}
+  .quickbar button{white-space:nowrap;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:20px;padding:9px 13px;font-size:13px;font-weight:700;cursor:pointer;flex:none}
+  .quickbar button:active{transform:scale(.95)}
 </style>
 </head>
 <body>
@@ -642,6 +646,7 @@ SCREENS.home=function(){
       </div>
     </div>
     <div class="menu">
+      <div class="tile wide" data-go="tutor" style="background:linear-gradient(135deg,#3a1f5c,var(--card))"><span class="e">🎓</span><b>Lezione con il tutor</b><span>Come avere un insegnante accanto: ti spiega e fa lezione passo passo</span></div>
       <div class="tile wide" data-go="chatmenu" style="background:linear-gradient(135deg,var(--card2),var(--card))"><span class="e">💬</span><b>Chiacchiera con l'AI</b><span>Conversazioni con voce, ti ricorda chi sei</span></div>
       <div class="tile" data-go="level"><span class="e">📊</span><b>Il mio livello</b><span>${pct}% · ${lv.lvl}</span></div>
       <div class="tile" data-go="lessons"><span class="e">📚</span><b>Lezioni</b><span>${doneL}/${LESSONS.length} fatte</span></div>
@@ -748,16 +753,73 @@ REGOLE OBBLIGATORIE:
   addBubble("ai",`${S.avatar} Pronto ${S.profile.name||'Federico'}! Scrivi o premi 🎤.\nNessuna paura di sbagliare: imparare è proprio questo! 😊`);
   thinkingThen(async()=>{CHAT.history.push({role:"user",parts:[{text:"(Inizia tu con un saluto e una prima domanda semplice.)"}]});return await callGemini(CHAT.history,sys,500);});
 };
-function addBubble(who,text){const log=$("#log");if(!log)return;const b=document.createElement("div");b.className="msg "+who;b.innerHTML=who==="ai"?fmt(text):esc(text);
-  if(who==="ai"){const line=(text.split("\n").find(l=>l.trim()&&!/^[\*💡✅🤖👋🦉🐱🐶🦊🐰🐼🐧🐨🦁🐯🐲🦄]/.test(l)&&!/^\(/.test(l))||"").replace(/\*/g,"").trim();
+function addBubble(who,text){const log=$("#log");if(!log)return"";const b=document.createElement("div");b.className="msg "+who;b.innerHTML=who==="ai"?fmt(text):esc(text);
+  let line="";
+  if(who==="ai"){const bold=(text.match(/\*\*(.+?)\*\*/)||[])[1];
+    line=bold||(text.split("\n").find(l=>l.trim()&&!/^[\*💡✅🤖👋🦉🐱🐶🦊🐰🐼🐧🐨🦁🐯🐲🦄]/.test(l)&&!/^\(/.test(l))||"").replace(/\*/g,"").trim();
     if(line){const s=document.createElement("span");s.className="say";s.innerHTML="🔊 ascolta";s.onclick=()=>speak(line,false);b.appendChild(s);}}
-  log.appendChild(b);log.scrollTop=log.scrollHeight;}
-async function sendChat(){const inp=$("#inp");const txt=inp.value.trim();if(!txt)return;inp.value="";inp.style.height="auto";addBubble("me",txt);CHAT.history.push({role:"user",parts:[{text:txt}]});await thinkingThen(async()=>await callGemini(CHAT.history,CHAT.sys,600));}
+  log.appendChild(b);log.scrollTop=log.scrollHeight;return line;}
+async function sendChat(){const inp=$("#inp");const txt=inp.value.trim();if(!txt)return;inp.value="";inp.style.height="auto";sendChatMsg(txt);}
+async function sendChatMsg(txt){if(!txt||!CHAT)return;addBubble("me",txt);CHAT.history.push({role:"user",parts:[{text:txt}]});await thinkingThen(async()=>await callGemini(CHAT.history,CHAT.sys,CHAT.teaching?720:600));}
 async function thinkingThen(fn){const log=$("#log");const t=el(`<div class="typing">il tutor sta scrivendo<span>.</span><span>.</span><span>.</span></div>`);log.appendChild(t);log.scrollTop=log.scrollHeight;
-  try{const text=await fn();t.remove();addBubble("ai",text);CHAT.history.push({role:"model",parts:[{text}]});addXP(5);}catch(e){t.remove();addBubble("ai",geminiErrMsg(e));}}
+  try{const text=await fn();t.remove();const snip=addBubble("ai",text);CHAT.history.push({role:"model",parts:[{text}]});addXP(5);if(CHAT.teaching&&snip)speak(snip,false);}catch(e){t.remove();addBubble("ai",geminiErrMsg(e));}}
 function wireMic(btn,inp){if(!btn)return;btn.onclick=()=>{if(!micSupported){toast("Microfono non disponibile. Usa Chrome.");return;}if(currentRec){stopListening();return;}
   btn.classList.add("rec");btn.textContent="⏹";toast("Parla pure... 🎤");
   startListening(a=>{inp.value=(inp.value?inp.value+" ":"")+a[0];inp.dispatchEvent(new Event("input"));},()=>toast("Non ho sentito, riprova 🎤"),()=>{btn.classList.remove("rec");btn.textContent="🎤";});};}
+
+/* ---- LEZIONE CON IL TUTOR (insegnante AI guidato) ---- */
+SCREENS.tutor=function(){
+  if(!S.apiKey)return SCREENS.setup();
+  const name=S.profile.name||"Federico";
+  const topics=[
+    {t:"i saluti di base",e:"👋",l:"Saluti"},
+    {t:"presentarsi: dire come ci si chiama e da dove si viene",e:"🤝",l:"Presentarmi"},
+    {t:"i numeri da 1 a 10",e:"🔢",l:"Numeri"},
+    {t:"ordinare al bar o al ristorante",e:"🍽️",l:"Al ristorante"},
+    {t:"chiedere indicazioni per strada",e:"🧭",l:"Indicazioni"},
+    {t:"parlare di lavoro e di un colloquio",e:"💼",l:"Lavoro"},
+    {t:"una conversazione semplice di tutti i giorni",e:"🗣️",l:"Conversazione"},
+  ];
+  render(`<div class="head"><button class="back">←</button><h2>🎓 Lezione con il tutor</h2></div>
+    <div class="card"><div class="mascot"><div class="avatar">${S.avatar}</div>
+      <div class="bubble">Ciao ${name}! 😊 Sono qui con te. Facciamo lezione <b>insieme, con calma</b>: ti spiego tutto io in italiano e proviamo un pezzettino alla volta. <b>Nessuno ti sente, nessuno ti giudica.</b><br><br>Cosa vuoi imparare oggi in <b>${LANGS[S.lang].flag} ${LANGS[S.lang].name}</b>?</div></div>
+      <button class="btn green" id="auto">✨ Scegli tu per me</button>
+      <p class="sub center" style="margin:10px 0 0;font-size:13px">Non sai da dove partire? Decido io in base al tuo livello.</p></div>
+    <div id="tchips"></div>`);
+  $(".back").onclick=()=>go("home");
+  $("#auto").onclick=()=>openTutorLesson("scegli tu l'argomento più utile per il suo livello: se è all'inizio parti dai saluti e dalle basi; se ha parole difficili da ripassare, usale");
+  const c=$("#tchips");
+  topics.forEach(tp=>{const e=el(`<div class="lesson"><div class="ic">${tp.e}</div><div class="meta"><b>${tp.l}</b><span>Lezione guidata, passo passo</span></div></div>`);e.onclick=()=>openTutorLesson(tp.t);c.appendChild(e);});
+};
+function openTutorLesson(topic){
+  const LN=LANGS[S.lang].ai,name=S.profile.name||"Federico";
+  const sys=`Sei un insegnante privato di ${LN}, gentilissimo e PAZIENTE, seduto accanto a ${name}, un italiano che parte da ZERO e si VERGOGNA molto di parlare. State facendo una vera lezione 1-a-1, come una persona vera accanto a lui.
+${memoryBlock()}
+ARGOMENTO DELLA LEZIONE: ${topic}.
+COME FARE LEZIONE (regole importanti):
+- Parla SEMPRE in italiano semplice e caloroso, come un amico-insegnante che SPIEGA (non limitarti a fare domande).
+- Procedi a PICCOLI PASSI: introduci 1-2 parole o 1 frase alla volta. MAI muri di testo (massimo 4-5 righe).
+- Ogni parola/frase nuova in ${LN}: scrivila in **grassetto**, poi la pronuncia all'italiana tra parentesi, poi il significato. Esempio: **hello** (hèl-lou) = ciao.
+- Quando serve, spiega una mini-regola in modo semplice con un esempio concreto.
+- Dopo aver spiegato, INVITALO a provare con calma ("prova a dirlo tu", "come diresti...?") e rassicuralo che sbagliare va benissimo.
+- Quando risponde: complimentati tanto. Se sbaglia, correggi con dolcezza ("ci sei quasi! si dice...") senza MAI farlo sentire stupido.
+- Ogni tanto fai un piccolo RIEPILOGO di ciò che ha imparato.
+- Chiedi spesso se ha capito o se vuole che ripeti, e vai al suo ritmo.
+- Usa emoji, celebra ogni progresso, sii caldo e umano. Finisci OGNI messaggio con UNA cosa chiara da fare.`;
+  CHAT={history:[],sys,teaching:true};
+  render(`<div class="head"><button class="back">←</button><h2>🎓 Il tuo tutor</h2></div>
+    <div class="chatwrap"><div class="chatlog" id="log"></div>
+    <div class="quickbar" id="qbar"></div>
+    <div class="composer"><button class="micbtn" id="mic">🎤</button><textarea id="inp" rows="1" placeholder="Scrivi, tocca un pulsante o usa 🎤..."></textarea><button class="sendbtn" id="send">➤</button></div></div>`);
+  $(".back").onclick=()=>go("tutor");
+  const inp=$("#inp");inp.addEventListener("input",()=>{inp.style.height="auto";inp.style.height=Math.min(inp.scrollHeight,120)+"px";});
+  inp.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();}});
+  $("#send").onclick=sendChat;wireMic($("#mic"),inp);if(!micSupported)$("#mic").style.opacity=.4;
+  const quicks=[["👍 Ho capito","Ho capito! Andiamo avanti 😊"],["🤔 Non ho capito","Non ho capito bene, me lo rispieghi più semplice?"],["🔁 Ripeti","Puoi ripetere l'ultima cosa?"],["✍️ Fammi provare","Fammi provare con un piccolo esercizio"],["🐢 Più piano","Vai un po' più piano, per favore"]];
+  const qbar=$("#qbar");quicks.forEach(([lab,msg])=>{const b=document.createElement("button");b.textContent=lab;b.onclick=()=>sendChatMsg(msg);qbar.appendChild(b);});
+  addBubble("ai",`${S.avatar} Eccomi ${name}! Mettiamoci comodi e iniziamo con calma. 💚`);
+  thinkingThen(async()=>{CHAT.history.push({role:"user",parts:[{text:`(Inizia la lezione di oggi su: ${topic}. Salutami con calore, rassicurami che andremo piano e che sbagliare va bene, poi insegnami il PRIMO piccolo elemento con grassetto, pronuncia e significato, e invitami a provare.)`}]});return await callGemini(CHAT.history,sys,720);});
+}
 
 /* ---- LEZIONI ---- */
 SCREENS.lessons=function(){
