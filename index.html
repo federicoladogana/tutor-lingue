@@ -543,8 +543,18 @@ function levelInfo(p){if(p>=90)return{lvl:"B1",name:"Intermedio (base)",emoji:"�
 function unitStats(lang){const pg=S.prog[lang]||{};const m={};LESSONS.forEach(l=>{(m[l.unit]||(m[l.unit]={s:0,n:0}));m[l.unit].s+=(pg[l.id]&&pg[l.id].best)||0;m[l.unit].n++;});return Object.entries(m).map(([u,v])=>({unit:u,pct:Math.round(v.s/(v.n*100)*100)}));}
 
 /* ---------------- GEMINI ---------------- */
-function memoryBlock(){const p=S.profile;const lv=levelInfo(knowledge(S.lang));
-  let m=`PROFILO STUDENTE (ricordalo e usalo sempre): nome=${p.name||'Federico'}; livello ${LANGS[S.lang].name}=${lv.lvl} (${knowledge(S.lang)}%). Chiamalo per nome e adatta la difficoltà al suo livello.`;
+const TEACH_LV=[
+  {lvl:"A1",cal:"Spiega quasi tutto in italiano. Una parola o frase brevissima per volta (2-3 parole). Ripeti spesso e vai lentissimo."},
+  {lvl:"A2",cal:"Frasi brevi al presente, parole di uso quotidiano. Fai piccole domande e risposte."},
+  {lvl:"B1",cal:"Frasi più lunghe, introduci passato e futuro semplici, chiedi opinioni ed esperienze. Riduci un po' l'italiano."},
+  {lvl:"B2",cal:"Conversazione ricca: sinonimi e connettivi (perché, però, quindi), correggi anche le sfumature. Usa più lingua target che italiano."},
+  {lvl:"C1",cal:"Argomenti astratti ed espressioni idiomatiche. Parla quasi solo nella lingua, note in italiano solo se serve."},
+  {lvl:"C2",cal:"Livello quasi-madrelingua: sfumature, registri formale/informale, modi di dire. Italiano solo se lo chiede."},
+];
+function teachIdx(){const pct=knowledge(S.lang);let i=pct<30?0:pct<60?1:pct<100?2:3;if(pct>=100){if(S.xp>=1800)i=4;if(S.xp>=3500)i=5;}return i;}
+function memoryBlock(){const p=S.profile;const lv=levelInfo(knowledge(S.lang));const ti=teachIdx();const cur=TEACH_LV[ti];const nxt=TEACH_LV[Math.min(ti+1,5)];
+  let m=`PROFILO STUDENTE (ricordalo e usalo sempre): nome=${p.name||'Federico'}; livello ${LANGS[S.lang].name}=${lv.lvl} (${knowledge(S.lang)}%). Chiamalo per nome.`;
+  m+=` LIVELLO DI INSEGNAMENTO: lavora al livello ${cur.lvl}. ${cur.cal} Quando vedi che se la cava, ALZA GRADUALMENTE l'asticella verso il ${nxt.lvl} (una frase un po' più lunga, una parola nuova, una domanda più aperta); se invece fatica, torna più semplice e rassicuralo.`;
   if(p.interests)m+=` Interessi (usali per gli esempi e gli argomenti): ${p.interests}.`;
   if(p.goals)m+=` Obiettivi (allenalo su questo): ${p.goals}.`;
   const w=weakHere().slice(-8).map(x=>x.w);if(w.length)m+=` Parole che sbaglia spesso (riproponile con dolcezza ogni tanto): ${w.join(', ')}.`;
@@ -824,7 +834,7 @@ SCREENS.tutor=function(){
   ];
   render(`<div class="head"><button class="back">←</button><h2>🎓 Lezione con il tutor</h2></div>
     <div class="card"><div class="mascot"><div class="avatar">${S.avatar}</div>
-      <div class="bubble">Ciao ${name}! 😊 Sono qui con te. Facciamo lezione <b>insieme, con calma</b>: ti spiego tutto io in italiano e proviamo un pezzettino alla volta. <b>Nessuno ti sente, nessuno ti giudica.</b><br><br>Cosa vuoi imparare oggi in <b>${LANGS[S.lang].flag} ${LANGS[S.lang].name}</b>?</div></div>
+      <div class="bubble">Ciao ${name}! 😊 Sono qui con te. Facciamo lezione <b>insieme, con calma</b>: ti spiego tutto io in italiano e proviamo un pezzettino alla volta. <b>Nessuno ti sente, nessuno ti giudica.</b><br>Mi adatto al tuo livello e ti spingo un po' più in alto quando sei pronto. 📈<br><br>Cosa vuoi imparare oggi in <b>${LANGS[S.lang].flag} ${LANGS[S.lang].name}</b>?</div></div>
       <button class="btn green" id="auto">✨ Scegli tu per me</button>
       <p class="sub center" style="margin:10px 0 0;font-size:13px">Non sai da dove partire? Decido io in base al tuo livello.</p></div>
     <div id="tchips"></div>`);
