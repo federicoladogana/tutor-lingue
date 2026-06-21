@@ -1,0 +1,17 @@
+{
+  "name": "Tutor Lingue AI",
+  "short_name": "Tutor Lingue",
+  "description": "Impara le lingue con l'AI, senza imbarazzo: inglese, spagnolo, francese, tedesco.",
+  "lang": "it",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f1421",
+  "theme_color": "#0f1421",
+  "categories": ["education"],
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
