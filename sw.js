@@ -1,7 +1,7 @@
 /* Service Worker — Tutor Lingue AI
    Rende l'app installabile e disponibile offline (lezioni e pronuncia).
    Le chiamate all'AI (Google) passano sempre dalla rete e non vengono salvate. */
-const CACHE = "tutor-lingue-v6";
+const CACHE = "tutor-lingue-v7";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
@@ -19,11 +19,13 @@ self.addEventListener("fetch", e => {
   const req = e.request;
   // Solo richieste GET dello stesso sito vengono gestite/cacheate.
   // Tutto il resto (es. l'AI di Google) va direttamente in rete.
-  if (req.method !== "GET" || new URL(req.url).origin !== self.location.origin) return;
+  if (req.method !== "GET") return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
 
-  // La pagina (HTML): RETE PER PRIMA, così gli aggiornamenti si vedono subito.
-  // Se offline, usa la copia salvata.
-  if (req.mode === "navigate" || req.destination === "document") {
+  // La pagina (HTML) e il manifest: RETE PER PRIMA, così gli aggiornamenti
+  // e l'idoneità all'installazione si vedono subito. Se offline, usa la copia salvata.
+  if (req.mode === "navigate" || req.destination === "document" || url.pathname.endsWith(".webmanifest")) {
     e.respondWith(
       fetch(req).then(res => {
         const copy = res.clone();
