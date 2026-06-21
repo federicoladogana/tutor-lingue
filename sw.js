@@ -1,8 +1,8 @@
 /* Service Worker — Tutor Lingue AI
    Rende l'app installabile e disponibile offline (lezioni e pronuncia).
    Le chiamate all'AI (Google) passano sempre dalla rete e non vengono salvate. */
-const CACHE = "tutor-lingue-v5";
-const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
+const CACHE = "tutor-lingue-v6";
+const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
